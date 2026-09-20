@@ -223,8 +223,8 @@
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                             Gemini API Key (ঐচ্ছিক)
                         </label>
-                        <input type="password" id="geminiApiKey" class="w-full p-3 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none font-medium text-slate-700 bg-white" placeholder="আপনার Gemini API Key লিখুন (ফাঁকা রাখলে বিল্ট-ইন কি ব্যবহার হবে)">
-                        <p class="text-[11px] text-slate-400 mt-1">সরাসরি গুগল থেকে রিয়েল-টাইম ইউনিক প্রশ্ন তৈরি করতে API key দিতে পারেন।</p>
+                        <input type="password" id="geminiApiKey" class="w-full p-3 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none font-medium text-slate-700 bg-white" placeholder="কাস্টম Gemini API Key লিখুন (ফাঁকা রাখলে বিল্ট-ইন কি ব্যবহৃত হবে)">
+                        <p class="text-[11px] text-slate-400 mt-1">সরাসরি গুগল থেকে রিয়েল-টাইম ইউনিক প্রশ্ন তৈরি করতে কাস্টম API key দিতে পারেন।</p>
                     </div>
 
                     <div>
@@ -406,6 +406,9 @@
     </div>
 
     <script>
+        // Default API key supplied
+        const DEFAULT_GEMINI_API_KEY = "AQ.Ab8RN6Ju1xOOw6npXli-irshG41qrYFLZ4-2lbonAPwTtKqM8w";
+
         const state = {
             lang: 'bn',
             user: null,
@@ -720,9 +723,8 @@
         // GEMINI AI INTEGRATION FUNCTION
         async function fetchQuestionsFromGemini(category, count, subject) {
             const apiKeyInput = document.getElementById('geminiApiKey').value.trim();
-            const apiKey = apiKeyInput || ""; // Put default key if needed
+            const apiKey = apiKeyInput || DEFAULT_GEMINI_API_KEY;
 
-            // Dynamic unique seed to prevent repeated questions across generations
             const randomSeed = Math.floor(Math.random() * 1000000);
             const timestamp = new Date().getTime();
 
@@ -732,7 +734,7 @@ Target Class Level: ${category.nameEn} (${category.nameBn}).
 Curriculum Guidelines: ${category.levelPrompt}.
 Subject: ${subject}.
 IMPORTANT RULES:
-1. Questions MUST strictly match the complexity and difficulty level appropriate for ${category.nameEn}. (e.g., Class 1-3 must be very simple, Class 9-10/HSC must be appropriate board exam level).
+1. Questions MUST strictly match the complexity and difficulty level appropriate for ${category.nameEn}.
 2. Ensure high uniqueness. Random Seed: ${randomSeed}_${timestamp}.
 3. Balance question difficulty (40% Easy, 40% Medium, 20% Hard).
 4. Return ONLY valid JSON array without any markdown formatted blocks. Each item must contain:
@@ -765,10 +767,6 @@ IMPORTANT RULES:
                     }
                 }
             };
-
-            if (!apiKey) {
-                throw new Error("API Key is missing");
-            }
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -828,7 +826,7 @@ IMPORTANT RULES:
                     throw new Error("Invalid output format");
                 }
             } catch (error) {
-                console.warn("Gemini API call skipped or failed. Using dynamic fallback engine:", error);
+                console.warn("Gemini API call error. Using fallback engine:", error);
                 state.questions = generateFallbackQuestions(state.questionCount);
             } finally {
                 loadingOverlay.classList.add('hidden');
